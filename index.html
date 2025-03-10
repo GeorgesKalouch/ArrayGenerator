@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grid Clicker</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(20, 30px);
+        grid-template-rows: repeat(15, 30px);
+        gap: 2px;
+        margin-top: 20px;
+      }
+      .cell {
+        width: 30px;
+        height: 30px;
+        background-color: lightgray;
+        border: 1px solid #ddd;
+        cursor: pointer;
+      }
+      .outer-cell {
+        background-color: red !important;
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" id="grid"></div>
+    <button id="generateArrayButton">Generate Array</button>
+
+    <script>
+      // Create the grid
+      const grid = document.getElementById("grid");
+      const generateArrayButton = document.getElementById(
+        "generateArrayButton"
+      );
+      const numRows = 15;
+      const numCols = 20;
+
+      let isMouseDown = false;
+
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          if (
+            row === 0 ||
+            row === numRows - 1 ||
+            col === 0 ||
+            col === numCols - 1
+          ) {
+            cell.classList.add("outer-cell");
+          }
+
+          cell.addEventListener("mousedown", (e) => {
+            e.preventDefault(); // Prevent dragging behavior
+            isMouseDown = true;
+            toggleColor(cell);
+          });
+
+          cell.addEventListener("mouseover", () => {
+            if (isMouseDown) {
+              toggleColor(cell);
+            }
+          });
+
+          cell.addEventListener("mouseup", () => {
+            isMouseDown = false;
+          });
+
+          grid.appendChild(cell);
+        }
+      }
+
+      function toggleColor(cell) {
+        if (cell.classList.contains("outer-cell")) {
+          return; // Don't change the outer edge cells
+        }
+        // Toggle the cell's color between red and white
+        if (cell.style.backgroundColor === "red") {
+          cell.style.backgroundColor = "lightgray";
+        } else {
+          cell.style.backgroundColor = "red";
+        }
+      }
+
+      // Handle the button click to generate the array and copy it to clipboard
+      generateArrayButton.addEventListener("click", () => {
+        let array = [];
+        const cells = grid.getElementsByClassName("cell");
+
+        // Loop through each cell and add the corresponding 1 or 0 to the array
+        for (let row = 0; row < numRows; row++) {
+          let rowArray = [];
+          for (let col = 0; col < numCols; col++) {
+            const cell = cells[row * numCols + col];
+            if (
+              cell.classList.contains("outer-cell") ||
+              cell.style.backgroundColor === "red"
+            ) {
+              rowArray.push(1); // 1 for red or outer border
+            } else {
+              rowArray.push(0); // 0 for lightgray
+            }
+          }
+          array.push(rowArray);
+        }
+
+        // Format the array to look like the desired output
+        let arrayString = `[   // Layout 1\n`;
+        array.forEach((row) => {
+          arrayString += `            [${row.join(", ")}],\n`;
+        });
+        arrayString += `        ]`;
+
+        // Copy the array string to the clipboard
+        navigator.clipboard
+          .writeText(arrayString)
+          .then(() => {
+            alert("Array copied to clipboard!");
+          })
+          .catch((err) => {
+            alert("Failed to copy: " + err);
+          });
+      });
+    </script>
+  </body>
+</html>
